@@ -4,6 +4,7 @@ from src.models.product import Product
 from src.shopify_token import ShopifyTokenManager
 from src.models.base_scrapper import BaseScrapper
 import time
+from src.logger import logger
 
 
 class RejectshopScrapper(BaseScrapper):
@@ -13,7 +14,7 @@ class RejectshopScrapper(BaseScrapper):
         self.token_manager = ShopifyTokenManager('therejectshop.myshopify.com')
         self.current_token = self.token_manager.get_token()
 
-    def _get_new_refresh_token(self):
+    def _refresh_access_token(self):
         self.current_token = self.token_manager.get_token(force_refresh=True)
 
     def _get_headers(self) -> dict:
@@ -115,8 +116,15 @@ class RejectshopScrapper(BaseScrapper):
                 ))
             return products
         except Exception as e:
-            print(f"Error parsing response: {e}")
+            logger.error(f"Error parsing response: {e}")
             return None
+
+    def _handle_request_error(self, response: requests.Response) -> None:
+        if response.status_code in [401, 403, 429]:
+            self._refresh_access_token()
+            self._rotate_user_agent()
+        logger.error(f'{response.status_code=} {response.text=}')
+        time.sleep(3)
 
     def search_products(self, search_query: str, max_retries: int = 3, return_first: bool = False) -> Union[List[Product], Product, None]:
         retries = 0
@@ -128,21 +136,17 @@ class RejectshopScrapper(BaseScrapper):
                 timeout=10
             )
 
-            if response.status_code == 200:
-                parsed = self._parse_response(response.json())
-                if parsed is None or len(parsed) == 0:
-                    print(
-                        f"No products found for {search_query} in rejectshop")
-                    return None
-                if return_first:
-                    return parsed[0]
-                return parsed
+            if response.status_code != 200:
+                self._handle_request_error(response)
+                retries += 1
+                continue
 
-            elif response.status_code == 401:
-                self._get_new_refresh_token()
-            elif response.status_code == 429:
-                self._rotate_user_agent()
-            retries += 1
-            if retries < max_retries:
-                time.sleep(1)
+            parsed = self._parse_response(response.json())
+            if parsed is None or len(parsed) == 0:
+                logger.error(f"No products found for {search_query}")
+                return None
+            if return_first:
+                return parsed[0]
+            return parsed
+
         return None

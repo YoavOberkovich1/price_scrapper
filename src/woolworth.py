@@ -4,6 +4,7 @@ from typing import Union, List
 from src.models.product import Product
 from src.models.base_scrapper import BaseScrapper
 from selenium import webdriver
+from src.logger import logger
 
 
 class WoolworthScrapper(BaseScrapper):
@@ -46,7 +47,7 @@ class WoolworthScrapper(BaseScrapper):
             self.last_cookie_refresh = current_time
             return self.cookies
         except Exception as e:
-            print(f"Error getting cookies: {e}")
+            logger.error(f"Error getting cookies: {e}")
             return {}
         finally:
             driver.quit()
@@ -91,15 +92,14 @@ class WoolworthScrapper(BaseScrapper):
                     products.append(product_obj)
             return products
         except Exception as e:
-            print(f"Error parsing response: {e}")
+            logger.error(f"Error parsing response: {e}")
             return None
 
     def _handle_request_error(self, response: requests.Response) -> None:
-        if response.status_code == 429:
-            print("Rate limit exceeded")
-            self._rotate_user_agent()
-            self._set_cookies(force_refresh=True)
-            time.sleep(3)
+        logger.error(f'{response.status_code=} {response.text=}')
+        self._rotate_user_agent()
+        self._set_cookies(force_refresh=True)
+        time.sleep(3)
 
     def search_products(self, search_query: str, return_first: bool = False, exact_name: str = None, max_retries: int = 3) -> Union[List[Product], Product, None]:
         retries = 0
@@ -121,8 +121,7 @@ class WoolworthScrapper(BaseScrapper):
 
                 data = self._parse_response(response.json(), exact_name)
                 if data is None or len(data) == 0:
-                    print(
-                        f"No products found for {search_query} in woolworths")
+                    logger.error(f"No products found for {search_query}")
                     return None
                 if return_first:
                     return data[0]
@@ -130,11 +129,11 @@ class WoolworthScrapper(BaseScrapper):
 
             except requests.RequestException as e:
                 retries += 1
-                print(f"Error making request: {e}")
+                logger.error(f"Error making request: {e}")
                 self._handle_request_error(response)
 
             except ValueError as e:
-                print(f"Error parsing JSON response: {e}")
+                logger.error(f"Error parsing JSON response: {e}")
                 return None
 
         return None
