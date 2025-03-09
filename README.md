@@ -20,7 +20,7 @@ A powerful and efficient price scraping tool that helps you track prices across 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/price_scrapper.git
+git clone https://github.com/YoavOberkovich1/price_scrapper.git
 cd price_scrapper
 ```
 
@@ -34,15 +34,6 @@ source venv/bin/activate  # On Windows, use: venv\Scripts\activate
 ```bash
 pip install -r requirements.txt
 ```
-
-## Dependencies
-
-- **requests**: Making HTTP requests to e-commerce platforms
-- **selenium**: Browser automation for handling dynamic content and cookies
-- **pydantic**: Data validation and settings management
-- **pytest**: Testing framework
-- **black**: Code formatting
-- **mypy**: Static type checking
 
 ## Usage
 
