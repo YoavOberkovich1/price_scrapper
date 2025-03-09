@@ -5,6 +5,8 @@ from datetime import datetime
 import json
 import os
 
+AGGREGATED_DATA_FILE = 'data/aggregated_results.json'
+
 
 def save_aggregated_data(reject_shop: Shop, woolworths: Shop) -> None:
     aggregated_data = []
@@ -16,11 +18,16 @@ def save_aggregated_data(reject_shop: Shop, woolworths: Shop) -> None:
         )
 
         price_difference = None
+        cheaper_shop = None
         if woolworth_product:
             price_difference = abs(
                 reject_product.price - woolworth_product.price)
             if price_difference is not None:
                 price_difference = f"${price_difference:.2f}"
+                if reject_product.price < woolworth_product.price:
+                    cheaper_shop = "RejectShop"
+                elif woolworth_product.price < reject_product.price:
+                    cheaper_shop = "Woolworths"
 
         data = {
             "SKU": reject_product.sku,
@@ -28,12 +35,13 @@ def save_aggregated_data(reject_shop: Shop, woolworths: Shop) -> None:
             "Price_RejectShop": f"${reject_product.price:.2f}",
             "Price_Woolworths": f"${woolworth_product.price:.2f}" if woolworth_product else None,
             "Price Difference": price_difference,
+            "Cheaper Shop": cheaper_shop,
             "Date": datetime.now().strftime("%Y-%m-%d")
         }
         aggregated_data.append(data)
 
     os.makedirs('data', exist_ok=True)
-    with open('data/aggregated.json', 'w') as f:
+    with open(AGGREGATED_DATA_FILE, 'w') as f:
         json.dump(aggregated_data, f, indent=2)
 
 
@@ -62,9 +70,8 @@ def scrap_data(skus: list[str]):
 
 
 if __name__ == "__main__":
-    example_skus = [
-        '30087959', '30061292', '30115549', '30121649', '30115976', '30148814', '30140778', '30132927', '30107779',
-        '30043588', '30035731', '30142504', '30061641', '30110732', '30140779', '30142505', '30113527'
+    example_skus = [  # Added some of my own skus to test
+        '30087959', '30061292', '30115549', '30121649', '30115976', '30148814', '30140778', '30132927', '30107779', '30113527', '30043588'
     ]
     scrap_data(example_skus)
-    print("Saved data to data/aggregated.json")
+    print(f"Saved data to {AGGREGATED_DATA_FILE}")
