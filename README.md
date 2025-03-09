@@ -1,15 +1,6 @@
 # Price Scraper
 
-A powerful and efficient price scraping tool that helps you track prices across various e-commerce platforms.
-
-## Features
-
-- Asynchronous web scraping for improved performance
-- Support for multiple e-commerce platforms
-- Price history tracking and analysis
-- User-agent rotation to avoid detection
-- Data export capabilities
-- Type-safe implementation
+Compare prices between sites. Now supporting therejectshop and woolthworth
 
 ## Requirements
 
