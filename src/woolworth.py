@@ -122,7 +122,7 @@ class WoolworthScrapper(BaseScrapper):
                 data = self._parse_response(response.json(), exact_name)
                 if data is None or len(data) == 0:
                     print(
-                        f"No products found for {search_query} in {self.shop_name}")
+                        f"No products found for {search_query} in woolworths")
                     return None
                 if return_first:
                     return data[0]

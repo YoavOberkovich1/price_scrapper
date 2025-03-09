@@ -132,7 +132,7 @@ class RejectshopScrapper(BaseScrapper):
                 parsed = self._parse_response(response.json())
                 if parsed is None or len(parsed) == 0:
                     print(
-                        f"No products found for {search_query} in {self.shop_name}")
+                        f"No products found for {search_query} in rejectshop")
                     return None
                 if return_first:
                     return parsed[0]
